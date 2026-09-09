@@ -1,11 +1,17 @@
 local a={main_color=Color3.fromRGB(41,74,122),min_size=Vector2.new(400,300),toggle_key=Enum.KeyCode.RightShift,can_resize=true}
 
+-- Clean up existing UI
 do 
     local b=game:GetService("CoreGui"):FindFirstChild("imgui")
     if b then b:Destroy() end
 end
 
 local b=Instance.new("ScreenGui")
+b.Name="imgui"
+b.Parent=game:GetService("CoreGui")
+b.IgnoreGuiInset=true
+b.ResetOnSpawn=false
+
 local c=Instance.new("Frame")
 local d=Instance.new("TextLabel")
 local e=Instance.new("ImageLabel")
@@ -79,8 +85,6 @@ local ai=Instance.new("TextButton")
 local aj=Instance.new("ImageLabel")
 local ak=Instance.new("Frame")
 
-b.Name="imgui"
-b.Parent=game:GetService("CoreGui")
 c.Name="Prefabs"
 c.Parent=b
 c.BackgroundColor3=Color3.new(1,1,1)
@@ -809,18 +813,62 @@ ak.BackgroundTransparency=1
 ak.Position=UDim2.new(0,20,0,20)
 ak.Size=UDim2.new(1,20,1,-20)
 
-script.Parent=b
-
 local al=game:GetService("UserInputService")
 local am=game:GetService("TweenService")
 local an=game:GetService("RunService")
 local ao=game:GetService("Players")
 local ap=ao.LocalPlayer
 local aq=ap:GetMouse()
-local c=script.Parent:WaitForChild("Prefabs")
-local ak=script.Parent:FindFirstChild("Windows")
+local c=b:WaitForChild("Prefabs")
+local ak=b:FindFirstChild("Windows")
 local ar={binding=false}
 local as={}
+
+-- Mobile detection and toggle button
+local isMobile = al.TouchEnabled and not al.KeyboardEnabled
+local touchGui = nil
+
+if isMobile then
+    touchGui = Instance.new("ScreenGui")
+    touchGui.Parent = game:GetService("CoreGui")
+    touchGui.IgnoreGuiInset = true
+    touchGui.ResetOnSpawn = false
+    
+    local toggleButton = Instance.new("ImageButton")
+    toggleButton.Parent = touchGui
+    toggleButton.Size = UDim2.new(0, 45, 0, 45)
+    toggleButton.Position = UDim2.new(0, 10, 0, 10)
+    toggleButton.BackgroundColor3 = a.main_color
+    toggleButton.Image = "rbxassetid://2851929490"
+    toggleButton.ImageColor3 = a.main_color
+    toggleButton.ScaleType = Enum.ScaleType.Slice
+    toggleButton.SliceCenter = Rect.new(4, 4, 4, 4)
+    toggleButton.ZIndex = 9999
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 10)
+    corner.Parent = toggleButton
+    
+    local icon = Instance.new("TextLabel")
+    icon.Parent = toggleButton
+    icon.Size = UDim2.new(1, 0, 1, 0)
+    icon.BackgroundTransparency = 1
+    icon.Text = "☰"
+    icon.TextColor3 = Color3.new(1, 1, 1)
+    icon.TextSize = 24
+    icon.Font = Enum.Font.FredokaOne
+    icon.ZIndex = 10000
+    
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.new(0, 0, 0)
+    stroke.Thickness = 2
+    stroke.Transparency = 0.3
+    stroke.Parent = toggleButton
+    
+    toggleButton.MouseButton1Click:Connect(function()
+        b.Enabled = not b.Enabled
+    end)
+end
 
 local function at(au)
     table.insert(as,au)
@@ -836,8 +884,8 @@ end
 
 at(al.InputBegan:Connect(function(ax,ay)
     if ax.KeyCode==(typeof(a.toggle_key)=="EnumItem" and a.toggle_key or Enum.KeyCode.RightShift) then
-        if script.Parent and not ar.binding then
-            script.Parent.Enabled=not script.Parent.Enabled
+        if b and not ar.binding then
+            b.Enabled=not b.Enabled
         end
     end
 end))
@@ -919,6 +967,12 @@ local function b1(b2)
 end
 
 local function b3()
+    if isMobile then
+        local touches = al:GetTouches()
+        if #touches > 0 then
+            return Vector2.new(touches[1].Position.X+1, touches[1].Position.Y-35)
+        end
+    end
     return Vector2.new(al:GetMouseLocation().X+1,al:GetMouseLocation().Y-35)
 end
 
@@ -980,6 +1034,11 @@ function bd:AddWindow(bi,bj)
     e:FindFirstChild("Title").Text=bi
     e.Size=UDim2.new(0,bj.min_size.X,0,bj.min_size.Y)
     e.ZIndex=e.ZIndex+bc*10
+    
+    -- Adjust for mobile
+    if isMobile then
+        e.Position = UDim2.new(0.5, -bj.min_size.X/2, 0.5, -bj.min_size.Y/2)
+    end
     
     do
         local g=e:FindFirstChild("Bar")
@@ -1053,6 +1112,39 @@ function bd:AddWindow(bi,bj)
     local bx={}
     e.Draggable=true
     
+    -- Window dragging with touch support
+    if isMobile then
+        e.Draggable = false
+        local dragStart = nil
+        local originalPos = nil
+        
+        local function startDrag(input)
+            if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragStart = input.Position
+                originalPos = e.Position
+            end
+        end
+        
+        local function updateDrag(input)
+            if dragStart and originalPos and (input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement) then
+                local delta = input.Position - dragStart
+                e.Position = UDim2.new(0, originalPos.X.Offset + delta.X, 0, originalPos.Y.Offset + delta.Y)
+            end
+        end
+        
+        local function endDrag(input)
+            if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragStart = nil
+                originalPos = nil
+            end
+        end
+        
+        g.InputBegan:Connect(startDrag)
+        g.InputChanged:Connect(updateDrag)
+        g.InputEnded:Connect(endDrag)
+    end
+    
+    -- Resize handling
     do
         local by=aq.Icon
         local bz=false
@@ -1066,10 +1158,12 @@ function bd:AddWindow(bi,bj)
             if bj.can_resize then aq.Icon=by end
             e.Draggable=true
         end)
+        
         local bA=false
         local bB
-        al.InputBegan:Connect(function(bC)
-            if bC.UserInputType==Enum.UserInputType.MouseButton1 then
+        
+        local function startResize(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                 bA=true
                 if bz and f.Active and bj.can_resize then
                     bB=an.Heartbeat:Connect(function()
@@ -1086,13 +1180,17 @@ function bd:AddWindow(bi,bj)
                     end)
                 end
             end
-        end)
-        al.InputEnded:Connect(function(bC)
-            if bC.UserInputType==Enum.UserInputType.MouseButton1 then
+        end
+        
+        local function endResize(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                 bA=false
                 if bB then bB:Disconnect() bB=nil end
             end
-        end)
+        end
+        
+        al.InputBegan:Connect(startResize)
+        al.InputEnded:Connect(endResize)
     end
     
     do
@@ -1207,6 +1305,13 @@ function bd:AddWindow(bi,bj)
             c1.ZIndex=c0.ZIndex
             c1.ScrollBarImageColor3=Color3.fromRGB(255,0,0)
             c1.ScrollBarImageTransparency=0.4
+            
+            -- Enable touch scrolling on mobile
+            if isMobile then
+                c1.ScrollingEnabled = true
+                c1.TouchSwipeEnabled = true
+            end
+            
             local bu=c0:FindFirstChildOfClass("UIListLayout")
             if bu then bu.Parent=c1 end
             
@@ -1419,7 +1524,7 @@ function bd:AddWindow(bi,bj)
                     cE.MouseLeave:Connect(function() bz=false e.Draggable=true end)
                     local bA=false
                     al.InputBegan:Connect(function(bC)
-                        if bC.UserInputType==Enum.UserInputType.MouseButton1 then
+                        if bC.UserInputType==Enum.UserInputType.MouseButton1 or bC.UserInputType==Enum.UserInputType.Touch then
                             bA=true
                             if bz and not cC.readonly then
                                 cH=an.Heartbeat:Connect(function()
@@ -1442,7 +1547,7 @@ function bd:AddWindow(bi,bj)
                         end
                     end)
                     al.InputEnded:Connect(function(bC)
-                        if bC.UserInputType==Enum.UserInputType.MouseButton1 then
+                        if bC.UserInputType==Enum.UserInputType.MouseButton1 or bC.UserInputType==Enum.UserInputType.Touch then
                             bA=false
                             if cH then cH:Disconnect() cH=nil end
                         end
@@ -1530,6 +1635,13 @@ function bd:AddWindow(bi,bj)
                     cZ.BackgroundTransparency=1
                     cZ.Position=UDim2.new(0,0,0,0)
                     cZ.Size=UDim2.new(1,0,1,0)
+                    
+                    -- Enable touch scrolling for dropdown
+                    if isMobile then
+                        cZ.ScrollingEnabled = true
+                        cZ.TouchSwipeEnabled = true
+                    end
+                    
                     local c1=c0:FindFirstChild("TabScroller")
                     cX.Parent=c1 or c0
                     cX.Text="      "..cV
@@ -1688,7 +1800,7 @@ function bd:AddWindow(bi,bj)
                     local bA=false
                     local dq
                     al.InputBegan:Connect(function(bC)
-                        if bC.UserInputType==Enum.UserInputType.MouseButton1 then
+                        if bC.UserInputType==Enum.UserInputType.MouseButton1 or bC.UserInputType==Enum.UserInputType.Touch then
                             bA=true
                             dq=an.Heartbeat:Connect(function()
                                 if not bA or bk then
@@ -1714,7 +1826,7 @@ function bd:AddWindow(bi,bj)
                         end
                     end)
                     al.InputEnded:Connect(function(bC)
-                        if bC.UserInputType==Enum.UserInputType.MouseButton1 then
+                        if bC.UserInputType==Enum.UserInputType.MouseButton1 or bC.UserInputType==Enum.UserInputType.Touch then
                             bA=false
                             if dq then dq:Disconnect() dq=nil end
                         end
@@ -1814,9 +1926,5 @@ function bd:AddWindow(bi,bj)
     
     return bx,e
 end
-
-script.AncestryChanged:Connect(function()
-    if not script.Parent then av() end
-end)
 
 return bd
