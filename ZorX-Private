@@ -1,6 +1,5 @@
 local a={main_color=Color3.fromRGB(41,74,122),min_size=Vector2.new(400,300),toggle_key=Enum.KeyCode.RightShift,can_resize=true}
 
--- Clean up existing UI
 do 
     local b=game:GetService("CoreGui"):FindFirstChild("imgui")
     if b then b:Destroy() end
@@ -264,7 +263,7 @@ v.BackgroundColor3=Color3.new(1,1,1)
 v.BackgroundTransparency=1
 v.Position=UDim2.new(0,0,0.178571433,0)
 v.Size=UDim2.new(1,0,0,20)
-v.Image="rbxassetid://131431625957379"
+v.Image="rbxassetid://2851929490"
 v.ImageColor3=Color3.new(0.145098,0.14902,0.156863)
 v.ScaleType=Enum.ScaleType.Slice
 v.SliceCenter=Rect.new(4,4,4,4)
@@ -286,7 +285,7 @@ x.Parent=v
 x.BackgroundColor3=Color3.new(1,1,1)
 x.BackgroundTransparency=1
 x.Size=UDim2.new(0,0,0,20)
-x.Image="rbxassetid://131431625957379"
+x.Image="rbxassetid://2851929490"
 x.ImageColor3=Color3.new(0.254902,0.262745,0.278431)
 x.ScaleType=Enum.ScaleType.Slice
 x.SliceCenter=Rect.new(4,4,4,4)
