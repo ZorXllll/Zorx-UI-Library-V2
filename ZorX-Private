@@ -824,52 +824,6 @@ local ak=b:FindFirstChild("Windows")
 local ar={binding=false}
 local as={}
 
--- Mobile detection and toggle button
-local isMobile = al.TouchEnabled and not al.KeyboardEnabled
-local touchGui = nil
-
-if isMobile then
-    touchGui = Instance.new("ScreenGui")
-    touchGui.Parent = game:GetService("CoreGui")
-    touchGui.IgnoreGuiInset = true
-    touchGui.ResetOnSpawn = false
-    
-    local toggleButton = Instance.new("ImageButton")
-    toggleButton.Parent = touchGui
-    toggleButton.Size = UDim2.new(0, 45, 0, 45)
-    toggleButton.Position = UDim2.new(0, 10, 0, 10)
-    toggleButton.BackgroundColor3 = a.main_color
-    toggleButton.Image = "rbxassetid://2851929490"
-    toggleButton.ImageColor3 = a.main_color
-    toggleButton.ScaleType = Enum.ScaleType.Slice
-    toggleButton.SliceCenter = Rect.new(4, 4, 4, 4)
-    toggleButton.ZIndex = 9999
-    
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 10)
-    corner.Parent = toggleButton
-    
-    local icon = Instance.new("TextLabel")
-    icon.Parent = toggleButton
-    icon.Size = UDim2.new(1, 0, 1, 0)
-    icon.BackgroundTransparency = 1
-    icon.Text = "☰"
-    icon.TextColor3 = Color3.new(1, 1, 1)
-    icon.TextSize = 24
-    icon.Font = Enum.Font.FredokaOne
-    icon.ZIndex = 10000
-    
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = Color3.new(0, 0, 0)
-    stroke.Thickness = 2
-    stroke.Transparency = 0.3
-    stroke.Parent = toggleButton
-    
-    toggleButton.MouseButton1Click:Connect(function()
-        b.Enabled = not b.Enabled
-    end)
-end
-
 local function at(au)
     table.insert(as,au)
     return au
@@ -967,12 +921,6 @@ local function b1(b2)
 end
 
 local function b3()
-    if isMobile then
-        local touches = al:GetTouches()
-        if #touches > 0 then
-            return Vector2.new(touches[1].Position.X+1, touches[1].Position.Y-35)
-        end
-    end
     return Vector2.new(al:GetMouseLocation().X+1,al:GetMouseLocation().Y-35)
 end
 
@@ -1034,11 +982,6 @@ function bd:AddWindow(bi,bj)
     e:FindFirstChild("Title").Text=bi
     e.Size=UDim2.new(0,bj.min_size.X,0,bj.min_size.Y)
     e.ZIndex=e.ZIndex+bc*10
-    
-    -- Adjust for mobile
-    if isMobile then
-        e.Position = UDim2.new(0.5, -bj.min_size.X/2, 0.5, -bj.min_size.Y/2)
-    end
     
     do
         local g=e:FindFirstChild("Bar")
@@ -1111,38 +1054,6 @@ function bd:AddWindow(bi,bj)
     local f=e:WaitForChild("Resizer")
     local bx={}
     e.Draggable=true
-    
-    -- Window dragging with touch support
-    if isMobile then
-        e.Draggable = false
-        local dragStart = nil
-        local originalPos = nil
-        
-        local function startDrag(input)
-            if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragStart = input.Position
-                originalPos = e.Position
-            end
-        end
-        
-        local function updateDrag(input)
-            if dragStart and originalPos and (input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement) then
-                local delta = input.Position - dragStart
-                e.Position = UDim2.new(0, originalPos.X.Offset + delta.X, 0, originalPos.Y.Offset + delta.Y)
-            end
-        end
-        
-        local function endDrag(input)
-            if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragStart = nil
-                originalPos = nil
-            end
-        end
-        
-        g.InputBegan:Connect(startDrag)
-        g.InputChanged:Connect(updateDrag)
-        g.InputEnded:Connect(endDrag)
-    end
     
     -- Resize handling
     do
@@ -1305,12 +1216,6 @@ function bd:AddWindow(bi,bj)
             c1.ZIndex=c0.ZIndex
             c1.ScrollBarImageColor3=Color3.fromRGB(255,0,0)
             c1.ScrollBarImageTransparency=0.4
-            
-            -- Enable touch scrolling on mobile
-            if isMobile then
-                c1.ScrollingEnabled = true
-                c1.TouchSwipeEnabled = true
-            end
             
             local bu=c0:FindFirstChildOfClass("UIListLayout")
             if bu then bu.Parent=c1 end
@@ -1518,40 +1423,74 @@ function bd:AddWindow(bi,bj)
                     cF.ZIndex=cF.ZIndex+bc*10
                     cG.ZIndex=cG.ZIndex+bc*10
                     bi.Text=cB
-                    local bz=false
-                    local cH
-                    cE.MouseEnter:Connect(function() bz=true e.Draggable=false end)
-                    cE.MouseLeave:Connect(function() bz=false e.Draggable=true end)
-                    local bA=false
-                    al.InputBegan:Connect(function(bC)
-                        if bC.UserInputType==Enum.UserInputType.MouseButton1 or bC.UserInputType==Enum.UserInputType.Touch then
-                            bA=true
-                            if bz and not cC.readonly then
-                                cH=an.Heartbeat:Connect(function()
-                                    if not bA or bk then
-                                        if cH then cH:Disconnect() cH=nil end
-                                        return
-                                    end
-                                    local bD=b3()
-                                    local b6=math.clamp((bD.X-cE.AbsolutePosition.X)/cE.AbsoluteSize.X,0,1)
-                                    cF.Size=UDim2.new(b6,0,0,20)
-                                    local ap=math.floor(b6*100)
-                                    local cI=cC.max
-                                    local cJ=cC.min
-                                    local cK=cI-cJ
-                                    local cL=math.floor(cK/100*ap+cJ)
-                                    cG.Text=tostring(cL)
-                                    pcall(co,cL)
-                                end)
+                    
+                    -- Slider interaction state
+                    local isDragging = false
+                    
+                    -- Function to update slider position
+                    local function updateSlider(input)
+                        if bk or not isDragging or cC.readonly then return end
+                        
+                        local mousePos
+                        if input and input.Position then
+                            mousePos = input.Position
+                        else
+                            mousePos = b3()
+                        end
+                        
+                        -- Make sure mouse is within slider bounds
+                        local sliderPos = cE.AbsolutePosition
+                        local sliderSize = cE.AbsoluteSize
+                        
+                        if mousePos.X < sliderPos.X or mousePos.X > sliderPos.X + sliderSize.X then
+                            return
+                        end
+                        
+                        local b6 = math.clamp((mousePos.X - sliderPos.X) / sliderSize.X, 0, 1)
+                        cF.Size = UDim2.new(b6, 0, 0, 20)
+                        local percentage = math.floor(b6 * 100)
+                        local range = cC.max - cC.min
+                        local value = math.floor(range / 100 * percentage + cC.min)
+                        cG.Text = tostring(value)
+                        pcall(co, value)
+                    end
+                    
+                    -- Mouse support
+                    cE.MouseEnter:Connect(function() 
+                        e.Draggable = false 
+                    end)
+                    cE.MouseLeave:Connect(function() 
+                        if not isDragging then
+                            e.Draggable = true 
+                        end
+                    end)
+                    
+                    -- Mouse button down on slider
+                    cE.InputBegan:Connect(function(input)
+                        if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and not cC.readonly then
+                            isDragging = true
+                            e.Draggable = false
+                            updateSlider(input)
+                        end
+                    end)
+                    
+                    -- Mouse movement for dragging
+                    cE.InputChanged:Connect(function(input)
+                        if (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) and isDragging then
+                            updateSlider(input)
+                        end
+                    end)
+                    
+                    -- Mouse button up / touch end
+                    al.InputEnded:Connect(function(input)
+                        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                            if isDragging then
+                                isDragging = false
+                                e.Draggable = true
                             end
                         end
                     end)
-                    al.InputEnded:Connect(function(bC)
-                        if bC.UserInputType==Enum.UserInputType.MouseButton1 or bC.UserInputType==Enum.UserInputType.Touch then
-                            bA=false
-                            if cH then cH:Disconnect() cH=nil end
-                        end
-                    end)
+                    
                     function cD:Set(cM)
                         cM=tonumber(cM) or 0
                         cM=math.clamp(cM,0,100)/100
@@ -1635,12 +1574,6 @@ function bd:AddWindow(bi,bj)
                     cZ.BackgroundTransparency=1
                     cZ.Position=UDim2.new(0,0,0,0)
                     cZ.Size=UDim2.new(1,0,1,0)
-                    
-                    -- Enable touch scrolling for dropdown
-                    if isMobile then
-                        cZ.ScrollingEnabled = true
-                        cZ.TouchSwipeEnabled = true
-                    end
                     
                     local c1=c0:FindFirstChild("TabScroller")
                     cX.Parent=c1 or c0
@@ -1870,8 +1803,13 @@ function bd:AddWindow(bi,bj)
                     local c1=c0:FindFirstChild("TabScroller")
                     dz.Parent=c1 or c0
                     b5.Text="      "..dx
+                    
+                    -- Make only the folder window transparent
+                    dz.ImageTransparency = 1
+                    
                     local cp=b5:GetChildren()[1]
                     cp.ImageColor3=bj.main_color
+                    
                     local function dB()
                         local d7=25
                         for aw,aW in ipairs(cZ:GetChildren()) do
