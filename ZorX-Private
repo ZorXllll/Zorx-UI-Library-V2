@@ -1,49 +1,14 @@
 local a={main_color=Color3.fromRGB(41,74,122),min_size=Vector2.new(400,300),toggle_key=Enum.KeyCode.RightShift,can_resize=true}
 
--- Fix: Support multiple executors for GUI parent
-local function getGuiParent()
-    local success, result = pcall(function()
-        return game:GetService("CoreGui")
-    end)
-    if success and result then
-        return result
-    end
-    
-    success, result = pcall(function()
-        return gethui()
-    end)
-    if success and result then
-        return result
-    end
-    
-    success, result = pcall(function()
-        return game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
-    end)
-    if success and result then
-        return result
-    end
-    
-    return nil
-end
-
-local guiParent = getGuiParent()
-if not guiParent then
-    warn("Failed to find GUI parent!")
-    return
-end
-
--- Remove existing UI if it exists
 do 
-    local existing = guiParent:FindFirstChild("imgui")
-    if existing then 
-        existing:Destroy() 
-    end 
+    local b=game:GetService("CoreGui"):FindFirstChild("imgui")
+    if b then b:Destroy() end
 end
 
 local b=Instance.new("ScreenGui")
 local c=Instance.new("Frame")
 local d=Instance.new("TextLabel")
-local e=Instance.new("Frame")
+local e=Instance.new("ImageLabel")
 local f=Instance.new("Frame")
 local g=Instance.new("Frame")
 local h=Instance.new("ImageButton")
@@ -115,9 +80,7 @@ local aj=Instance.new("ImageLabel")
 local ak=Instance.new("Frame")
 
 b.Name="imgui"
-b.Parent=guiParent
-b.ResetOnSpawn=false
-
+b.Parent=game:GetService("CoreGui")
 c.Name="Prefabs"
 c.Parent=b
 c.BackgroundColor3=Color3.new(1,1,1)
@@ -847,6 +810,7 @@ ak.Position=UDim2.new(0,20,0,20)
 ak.Size=UDim2.new(1,20,1,-20)
 
 script.Parent=b
+
 local al=game:GetService("UserInputService")
 local am=game:GetService("TweenService")
 local an=game:GetService("RunService")
@@ -864,16 +828,14 @@ local function at(au)
 end
 
 local function av()
-    for aw,au in ipairs(as)do
-        if au.Connected then
-            au:Disconnect()
-        end
+    for aw,au in ipairs(as) do
+        if au.Connected then au:Disconnect() end
     end
     as={}
 end
 
 at(al.InputBegan:Connect(function(ax,ay)
-    if ax.KeyCode==(typeof(a.toggle_key)=="EnumItem"and a.toggle_key or Enum.KeyCode.RightShift)then
+    if ax.KeyCode==(typeof(a.toggle_key)=="EnumItem" and a.toggle_key or Enum.KeyCode.RightShift) then
         if script.Parent and not ar.binding then
             script.Parent.Enabled=not script.Parent.Enabled
         end
@@ -883,7 +845,7 @@ end))
 local function az(aA,aB,aC)
     aC=aC or 0.1
     if aC==0 then
-        for aD,aE in pairs(aB)do
+        for aD,aE in pairs(aB) do
             aA[aD]=aE
         end
         return
@@ -896,11 +858,11 @@ end
 
 local function aH(aI,aJ,aK)
     local aL=aI:FindFirstChild("UIGradient")
-    if aL then aL:Destroy()end
-    if typeof(aJ)=="Color3"then aJ={aJ}end
-    if not aJ or#aJ==0 then return end
-    if#aJ==1 then
-        if aI:IsA("ImageLabel")or aI:IsA("ImageButton")then
+    if aL then aL:Destroy() end
+    if typeof(aJ)=="Color3" then aJ={aJ} end
+    if not aJ or #aJ==0 then return end
+    if #aJ==1 then
+        if aI:IsA("ImageLabel") or aI:IsA("ImageButton") then
             aI.ImageColor3=aJ[1]
         else
             aI.BackgroundColor3=aJ[1]
@@ -911,13 +873,13 @@ local function aH(aI,aJ,aK)
     aM.Parent=aI
     aM.Rotation=aK or 0
     local aN={}
-    if#aJ==2 then
+    if #aJ==2 then
         aN={ColorSequenceKeypoint.new(0,aJ[1]),ColorSequenceKeypoint.new(1,aJ[2])}
-    elseif#aJ>=3 then
+    elseif #aJ>=3 then
         aN={ColorSequenceKeypoint.new(0,aJ[1]),ColorSequenceKeypoint.new(0.5,aJ[2]),ColorSequenceKeypoint.new(1,aJ[3])}
     end
     aM.Color=ColorSequence.new(aN)
-    if aI:IsA("ImageLabel")or aI:IsA("ImageButton")then
+    if aI:IsA("ImageLabel") or aI:IsA("ImageButton") then
         aI.ImageColor3=Color3.new(1,1,1)
     else
         aI.BackgroundColor3=Color3.new(1,1,1)
@@ -984,13 +946,13 @@ local function be()
     local bf=c:FindFirstChild("UIListLayout"):Clone()
     bf.Parent=ak
     local bg={}
-    for aw,aW in ipairs(ak:GetChildren())do
-        if not aW:IsA("UIListLayout")then
+    for aw,aW in ipairs(ak:GetChildren()) do
+        if not aW:IsA("UIListLayout") then
             bg[aW]=aW.AbsolutePosition
         end
     end
     bf:Destroy()
-    for bh,aW in pairs(bg)do
+    for bh,aW in pairs(bg) do
         bh.Position=UDim2.new(0,aW.X,0,aW.Y)
     end
 end
@@ -1002,16 +964,16 @@ end
 function bd:AddWindow(bi,bj)
     bc=bc+1
     local bk=false
-    bi=tostring(bi or"New Window")
-    bj=typeof(bj)=="table"and bj or a
+    bi=tostring(bi or "New Window")
+    bj=typeof(bj)=="table" and bj or a
     bj.tween_time=bj.tween_time or 0.1
-    bj.title_bar=bj.title_bar or{Color3.fromRGB(41,74,122)}
-    if typeof(bj.title_bar)=="Color3"then bj.title_bar={bj.title_bar}end
+    bj.title_bar=bj.title_bar or {Color3.fromRGB(41,74,122)}
+    if typeof(bj.title_bar)=="Color3" then bj.title_bar={bj.title_bar} end
     bj.title_bar_transparency=bj.title_bar_transparency or 0
-    bj.background=bj.background or{Color3.new(0.08,0.09,0.1)}
-    if typeof(bj.background)=="Color3"then bj.background={bj.background}end
+    bj.background=bj.background or {Color3.new(0.08,0.09,0.1)}
+    if typeof(bj.background)=="Color3" then bj.background={bj.background} end
     bj.background_transparency=bj.background_transparency or 0.1
-    if not bj.main_color then bj.main_color=bj.title_bar[1]end
+    if not bj.main_color then bj.main_color=bj.title_bar[1] end
     
     local e=c:FindFirstChild("Window"):Clone()
     e.Parent=ak
@@ -1031,12 +993,14 @@ function bd:AddWindow(bi,bj)
         local bn=(bm-18)/2
         g.Size=UDim2.new(1,0,0,bm)
         g.Position=UDim2.new(0,0,0,0)
-        if i then i:Destroy()end
-        if j then j:Destroy()end
+        if i then i:Destroy() end
+        if j then j:Destroy() end
+        
         local bo=Instance.new("UICorner")
         bo.CornerRadius=UDim.new(0,5)
         bo.Parent=g
-        if h then h.Position=UDim2.new(0,5,0,bn)end
+        
+        if h then h.Position=UDim2.new(0,5,0,bn) end
         if l then
             local bp=25
             local bq=5
@@ -1046,6 +1010,7 @@ function bd:AddWindow(bi,bj)
         end
         g.BackgroundTransparency=bj.title_bar_transparency
         aH(g,bj.title_bar,0)
+        
         if m then
             m.Size=UDim2.new(1,-30,0,22)
             m.Position=UDim2.new(0,15,0,28)
@@ -1065,11 +1030,13 @@ function bd:AddWindow(bi,bj)
                     end
                 end
             end
-            if bl then bl:Destroy()end
+            if bl then bl:Destroy() end
         end
+        
         e.ImageTransparency=bj.background_transparency
         aH(e,bj.background,45)
         local bv=e:FindFirstChild("Tabs")
+        
         h.MouseButton1Click:Connect(function()
             local bw=bv.Visible
             if bw then
@@ -1107,7 +1074,7 @@ function bd:AddWindow(bi,bj)
                 if bz and f.Active and bj.can_resize then
                     bB=an.Heartbeat:Connect(function()
                         if not bA or not f.Active then
-                            if bB then bB:Disconnect()bB=nil end
+                            if bB then bB:Disconnect() bB=nil end
                             return
                         end
                         local bD=b3()
@@ -1123,7 +1090,7 @@ function bd:AddWindow(bi,bj)
         al.InputEnded:Connect(function(bC)
             if bC.UserInputType==Enum.UserInputType.MouseButton1 then
                 bA=false
-                if bB then bB:Disconnect()bB=nil end
+                if bB then bB:Disconnect() bB=nil end
             end
         end)
     end
@@ -1139,7 +1106,7 @@ function bd:AddWindow(bi,bj)
             bG=false
             if bF then
                 bH={}
-                for aw,aW in ipairs(e:FindFirstChild("Tabs"):GetChildren())do
+                for aw,aW in ipairs(e:FindFirstChild("Tabs"):GetChildren()) do
                     bH[aW]=aW.Visible
                     aW.Visible=false
                 end
@@ -1147,18 +1114,22 @@ function bd:AddWindow(bi,bj)
                 bI=e.AbsoluteSize.Y
                 az(bE,{Rotation=0},bj.tween_time)
                 local aG=az(e,{Size=UDim2.new(0,e.AbsoluteSize.X,0,26)},bj.tween_time)
-                if bE.Parent:FindFirstChild("Base")then bE.Parent:FindFirstChild("Base").Transparency=1 end
+                if bE.Parent:FindFirstChild("Base") then
+                    bE.Parent:FindFirstChild("Base").Transparency=1
+                end
             else
-                for bh,aW in pairs(bH)do
+                for bh,aW in pairs(bH) do
                     bh.Visible=aW
                 end
                 f.Active=true
                 az(bE,{Rotation=0},bj.tween_time)
                 local aG=az(e,{Size=UDim2.new(0,e.AbsoluteSize.X,0,bI)},bj.tween_time)
-                if bE.Parent:FindFirstChild("Base")then bE.Parent:FindFirstChild("Base").Transparency=bj.title_bar_transparency end
+                if bE.Parent:FindFirstChild("Base") then
+                    bE.Parent:FindFirstChild("Base").Transparency=bj.title_bar_transparency
+                end
             end
             bF=not bF
-            task.delay(bj.tween_time,function()bG=true end)
+            task.delay(bj.tween_time,function() bG=true end)
         end)
     end
     
@@ -1173,16 +1144,18 @@ function bd:AddWindow(bi,bj)
         local function bP()
             local bQ=0
             local bR=bM:FindFirstChildOfClass("UIListLayout").Padding.Offset or 0
-            for aw,bS in ipairs(bM:GetChildren())do
-                if bS:IsA("TextButton")then bQ=bQ+bS.AbsoluteSize.X+bR end
+            for aw,bS in ipairs(bM:GetChildren()) do
+                if bS:IsA("TextButton") then
+                    bQ=bQ+bS.AbsoluteSize.X+bR
+                end
             end
             bM.Size=UDim2.new(0,bQ,1,0)
-            if bL then bL.CanvasSize=UDim2.new(0,bQ,0,0)end
+            if bL then bL.CanvasSize=UDim2.new(0,bQ,0,0) end
         end
         
         function bx:AddTab(bT)
             local bU={}
-            bT=tostring(bT or"New Tab")
+            bT=tostring(bT or "New Tab")
             bK.Visible=true
             local bV=c:FindFirstChild("TabButton"):Clone()
             bV.Parent=bM
@@ -1236,6 +1209,7 @@ function bd:AddWindow(bi,bj)
             c1.ScrollBarImageTransparency=0.4
             local bu=c0:FindFirstChildOfClass("UIListLayout")
             if bu then bu.Parent=c1 end
+            
             local function c2()
                 local c3=bu.AbsoluteContentSize.Y
                 c1.CanvasSize=UDim2.new(0,0,0,c3+10)
@@ -1261,10 +1235,10 @@ function bd:AddWindow(bi,bj)
                         bo.Parent=c6
                         local c7=math.random(1,4)
                         local c8,c9=0,0
-                        if c7==1 then c8=math.random(5,c5.X-5)c9=1
+                        if c7==1 then c8=math.random(5,c5.X-5) c9=1
                         elseif c7==2 then c8=c5.X-1 c9=math.random(5,c5.Y-5)
-                        elseif c7==3 then c8=math.random(5,c5.X-5)c9=c5.Y-1
-                        else c8=1 c9=math.random(5,c5.Y-5)end
+                        elseif c7==3 then c8=math.random(5,c5.X-5) c9=c5.Y-1
+                        else c8=1 c9=math.random(5,c5.Y-5) end
                         c6.Position=UDim2.new(0,c8,0,c9)
                         c6.Parent=b5
                         local ca,cb=c5.X/2,c5.Y/2
@@ -1277,15 +1251,18 @@ function bd:AddWindow(bi,bj)
                         local aG=am:Create(c6,aF,{Position=UDim2.new(0,cf,0,cg),BackgroundTransparency=1})
                         aG:Play()
                         task.wait(0.5)
-                        if c6 and c6.Parent then c6:Destroy()end
+                        if c6 and c6.Parent then c6:Destroy() end
                     end)
                 end
             end
             
             local function ch()
-                if bO then bO:Disconnect()end
+                if bO then bO:Disconnect() end
                 bO=an.Heartbeat:Connect(function()
-                    if bN and bN.Parent then c4(bN)task.wait(0.2)end
+                    if bN and bN.Parent then
+                        c4(bN)
+                        task.wait(0.2)
+                    end
                 end)
             end
             
@@ -1296,8 +1273,8 @@ function bd:AddWindow(bi,bj)
                     if cj then cj.Visible=false end
                     bN.TextColor3=Color3.fromRGB(200,200,200)
                 end
-                for aw,aW in ipairs(bJ:GetChildren())do
-                    if aW:IsA("Frame")then aW.Visible=false end
+                for aw,aW in ipairs(bJ:GetChildren()) do
+                    if aW:IsA("Frame") then aW.Visible=false end
                 end
                 bN=bV
                 local ck=bV:FindFirstChild("TabOutline")
@@ -1309,22 +1286,30 @@ function bd:AddWindow(bi,bj)
             
             bV.MouseButton1Click:Connect(ci)
             bV.MouseEnter:Connect(function()
-                if bV~=bN then bV.TextColor3=Color3.fromRGB(230,230,230)end
+                if bV~=bN then bV.TextColor3=Color3.fromRGB(230,230,230) end
             end)
             bV.MouseLeave:Connect(function()
-                if bV~=bN then bV.TextColor3=Color3.fromRGB(200,200,200)end
+                if bV~=bN then bV.TextColor3=Color3.fromRGB(200,200,200) end
             end)
-            function bU:Show()ci()end
+            
+            function bU:Show()
+                ci()
+            end
+            
             bV.AncestryChanged:Connect(function()
                 if not bV.Parent then
-                    if bN==bV then bN=nil if bO then bO:Disconnect()bO=nil end end
+                    if bN==bV then
+                        bN=nil
+                        if bO then bO:Disconnect() bO=nil end
+                    end
                 end
             end)
-            if#bM:GetChildren()==2 then ci()end
+            
+            if #bM:GetChildren()==2 then ci() end
             
             do
                 function bU:AddLabel(cl)
-                    cl=tostring(cl or"New Label")
+                    cl=tostring(cl or "New Label")
                     local cm=c:FindFirstChild("Label"):Clone()
                     local c1=c0:FindFirstChild("TabScroller")
                     cm.Parent=c1 or c0
@@ -1335,8 +1320,8 @@ function bd:AddWindow(bi,bj)
                 end
                 
                 function bU:AddButton(cn,co)
-                    cn=tostring(cn or"New Button")
-                    co=typeof(co)=="function"and co or function()end
+                    cn=tostring(cn or "New Button")
+                    co=typeof(co)=="function" and co or function() end
                     local b5=c:FindFirstChild("Button"):Clone()
                     local c1=c0:FindFirstChild("TabScroller")
                     b5.Parent=c1 or c0
@@ -1357,8 +1342,8 @@ function bd:AddWindow(bi,bj)
                 
                 function bU:AddSwitch(cq,co)
                     local cr={}
-                    cq=tostring(cq or"New Switch")
-                    co=typeof(co)=="function"and co or function()end
+                    cq=tostring(cq or "New Switch")
+                    co=typeof(co)=="function" and co or function() end
                     local cs=c:FindFirstChild("Switch"):Clone()
                     local c1=c0:FindFirstChild("TabScroller")
                     cs.Parent=c1 or c0
@@ -1372,21 +1357,21 @@ function bd:AddWindow(bi,bj)
                     local cu=false
                     cs.MouseButton1Click:Connect(function()
                         cu=not cu
-                        cs.Text=cu and utf8.char(10003)or""
+                        cs.Text=cu and utf8.char(10003) or ""
                         pcall(co,cu)
                     end)
                     function cr:Set(cv)
-                        cu=typeof(cv)=="boolean"and cv or false
-                        cs.Text=cu and utf8.char(10003)or""
+                        cu=typeof(cv)=="boolean" and cv or false
+                        cs.Text=cu and utf8.char(10003) or ""
                         pcall(co,cu)
                     end
                     return cr,cs
                 end
                 
                 function bU:AddTextBox(cw,co,cx)
-                    cw=tostring(cw or"New TextBox")
-                    co=typeof(co)=="function"and co or function()end
-                    cx=typeof(cx)=="table"and cx or{clear=false}
+                    cw=tostring(cw or "New TextBox")
+                    co=typeof(co)=="function" and co or function() end
+                    cx=typeof(cx)=="table" and cx or {clear=false}
                     cx.clear=cx.clear==true
                     local cy=c:FindFirstChild("TextBox"):Clone()
                     cy.Size=UDim2.new(0.5,-5,0,20)
@@ -1401,9 +1386,9 @@ function bd:AddWindow(bi,bj)
                     cy.TextColor3=Color3.new(1,1,1)
                     cy.PlaceholderColor3=Color3.fromRGB(200,200,200)
                     cy.FocusLost:Connect(function(cA)
-                        if cA and#cy.Text>0 then
+                        if cA and #cy.Text>0 then
                             pcall(co,cy.Text)
-                            if cx.clear then cy.Text=""end
+                            if cx.clear then cy.Text="" end
                         end
                     end)
                     return cy
@@ -1411,9 +1396,9 @@ function bd:AddWindow(bi,bj)
                 
                 function bU:AddSlider(cB,co,cC)
                     local cD={}
-                    cB=tostring(cB or"New Slider")
-                    co=typeof(co)=="function"and co or function()end
-                    cC=typeof(cC)=="table"and cC or{}
+                    cB=tostring(cB or "New Slider")
+                    co=typeof(co)=="function" and co or function() end
+                    cC=typeof(cC)=="table" and cC or {}
                     cC.min=cC.min or 0
                     cC.max=cC.max or 100
                     cC.readonly=cC.readonly or false
@@ -1430,8 +1415,8 @@ function bd:AddWindow(bi,bj)
                     bi.Text=cB
                     local bz=false
                     local cH
-                    cE.MouseEnter:Connect(function()bz=true e.Draggable=false end)
-                    cE.MouseLeave:Connect(function()bz=false e.Draggable=true end)
+                    cE.MouseEnter:Connect(function() bz=true e.Draggable=false end)
+                    cE.MouseLeave:Connect(function() bz=false e.Draggable=true end)
                     local bA=false
                     al.InputBegan:Connect(function(bC)
                         if bC.UserInputType==Enum.UserInputType.MouseButton1 then
@@ -1439,7 +1424,7 @@ function bd:AddWindow(bi,bj)
                             if bz and not cC.readonly then
                                 cH=an.Heartbeat:Connect(function()
                                     if not bA or bk then
-                                        if cH then cH:Disconnect()cH=nil end
+                                        if cH then cH:Disconnect() cH=nil end
                                         return
                                     end
                                     local bD=b3()
@@ -1459,11 +1444,11 @@ function bd:AddWindow(bi,bj)
                     al.InputEnded:Connect(function(bC)
                         if bC.UserInputType==Enum.UserInputType.MouseButton1 then
                             bA=false
-                            if cH then cH:Disconnect()cH=nil end
+                            if cH then cH:Disconnect() cH=nil end
                         end
                     end)
                     function cD:Set(cM)
-                        cM=tonumber(cM)or 0
+                        cM=tonumber(cM) or 0
                         cM=math.clamp(cM,0,100)/100
                         cF.Size=UDim2.new(cM,0,0,20)
                         local ap=math.floor(cM*100)
@@ -1480,9 +1465,9 @@ function bd:AddWindow(bi,bj)
                 
                 function bU:AddKeybind(cN,co,cO)
                     local cP={}
-                    cN=tostring(cN or"New Keybind")
-                    co=typeof(co)=="function"and co or function()end
-                    cO=typeof(cO)=="table"and cO or{}
+                    cN=tostring(cN or "New Keybind")
+                    co=typeof(co)=="function" and co or function() end
+                    cO=typeof(cO)=="table" and cO or {}
                     cO.standard=cO.standard or Enum.KeyCode.RightShift
                     local cQ=c:FindFirstChild("Keybind"):Clone()
                     local ax=cQ:FindFirstChild("Input")
@@ -1498,16 +1483,16 @@ function bd:AddWindow(bi,bj)
                     local cR={RightControl="RightCtrl",LeftControl="LeftCtrl",LeftShift="LShift",RightShift="RShift",MouseButton1="Mouse1",MouseButton2="Mouse2"}
                     local cS=cO.standard
                     function cP:SetKeybind(ag)
-                        local cT=cR[ag.Name]or ag.Name
+                        local cT=cR[ag.Name] or ag.Name
                         ax.Text=cT
                         cS=ag
                     end
                     al.InputBegan:Connect(function(cU,aR)
                         if ar.binding then
-                            task.defer(function()ar.binding=false end)
+                            task.defer(function() ar.binding=false end)
                             return
                         end
-                        if cU.KeyCode==cS and not aR then pcall(co,cS)end
+                        if cU.KeyCode==cS and not aR then pcall(co,cS) end
                     end)
                     cP:SetKeybind(cO.standard)
                     ax.MouseButton1Click:Connect(function()
@@ -1522,8 +1507,8 @@ function bd:AddWindow(bi,bj)
                 
                 function bU:AddDropdown(cV,co)
                     local cW={}
-                    cV=tostring(cV or"New Dropdown")
-                    co=typeof(co)=="function"and co or function()end
+                    cV=tostring(cV or "New Dropdown")
+                    co=typeof(co)=="function" and co or function() end
                     local cX=c:FindFirstChild("Dropdown"):Clone()
                     local cY=cX:FindFirstChild("Box")
                     local cZ=cY:FindFirstChild("Objects")
@@ -1556,7 +1541,7 @@ function bd:AddWindow(bi,bj)
                     cX.MouseButton1Click:Connect(function()
                         bF=not bF
                         local d2=math.min((#cZ:GetChildren()-1)*20,200)
-                        if#cZ:GetChildren()-1>=10 then cZ.CanvasSize=UDim2.new(0,0,(#cZ:GetChildren()-1)*0.1,0)end
+                        if #cZ:GetChildren()-1>=10 then cZ.CanvasSize=UDim2.new(0,0,(#cZ:GetChildren()-1)*0.1,0) end
                         if bF then
                             if bk then return end
                             bk=true
@@ -1585,7 +1570,7 @@ function bd:AddWindow(bi,bj)
                                 local aF=TweenInfo.new(bj.tween_time,Enum.EasingStyle.Quad,Enum.EasingDirection.Out)
                                 local aG=am:Create(cY,aF,{Size=UDim2.new(1,0,0,0),Position=UDim2.new(0,0,0,-5)})
                                 aG:Play()
-                                aG.Completed:Connect(function()cY.Position=UDim2.new(0,0,0,25)end)
+                                aG.Completed:Connect(function() cY.Position=UDim2.new(0,0,0,25) end)
                             else
                                 az(cY,{Size=UDim2.new(1,0,0,0)},bj.tween_time)
                             end
@@ -1595,7 +1580,7 @@ function bd:AddWindow(bi,bj)
                     
                     function cW:Add(d7)
                         local d8={}
-                        d7=tostring(d7 or"New Object")
+                        d7=tostring(d7 or "New Object")
                         local aZ=c:FindFirstChild("DropdownButton"):Clone()
                         aZ.Parent=cZ
                         aZ.Text="      "..d7
@@ -1605,7 +1590,7 @@ function bd:AddWindow(bi,bj)
                         aZ.BorderSizePixel=0
                         aZ.TextXAlignment=Enum.TextXAlignment.Left
                         local d9=aZ:FindFirstChildOfClass("UICorner")
-                        if d9 then d9:Destroy()end
+                        if d9 then d9:Destroy() end
                         local bY=Instance.new("UIStroke")
                         bY.Color=Color3.new(0,0,0)
                         bY.Thickness=1
@@ -1615,10 +1600,12 @@ function bd:AddWindow(bi,bj)
                             aZ.BackgroundTransparency=0.8
                             aZ.BackgroundColor3=bj.main_color
                         end)
-                        aZ.MouseLeave:Connect(function()aZ.BackgroundTransparency=1 end)
+                        aZ.MouseLeave:Connect(function()
+                            aZ.BackgroundTransparency=1
+                        end)
                         if bF then
                             local d2=math.min((#cZ:GetChildren()-1)*20,200)
-                            if#cZ:GetChildren()-1>=10 then cZ.CanvasSize=UDim2.new(0,0,(#cZ:GetChildren()-1)*0.1,0)end
+                            if #cZ:GetChildren()-1>=10 then cZ.CanvasSize=UDim2.new(0,0,(#cZ:GetChildren()-1)*0.1,0) end
                             if d1 then
                                 local aF=TweenInfo.new(bj.tween_time,Enum.EasingStyle.Quad,Enum.EasingDirection.Out)
                                 local aG=am:Create(cY,aF,{Size=UDim2.new(1,0,0,d2),Position=UDim2.new(0,0,0,-d2-5)})
@@ -1636,7 +1623,7 @@ function bd:AddWindow(bi,bj)
                                     local aF=TweenInfo.new(bj.tween_time,Enum.EasingStyle.Quad,Enum.EasingDirection.Out)
                                     local aG=am:Create(cY,aF,{Size=UDim2.new(1,0,0,0),Position=UDim2.new(0,0,0,-5)})
                                     aG:Play()
-                                    aG.Completed:Connect(function()cY.Position=UDim2.new(0,0,0,25)end)
+                                    aG.Completed:Connect(function() cY.Position=UDim2.new(0,0,0,25) end)
                                 else
                                     az(cY,{Size=UDim2.new(1,0,0,0)},bj.tween_time)
                                 end
@@ -1644,7 +1631,9 @@ function bd:AddWindow(bi,bj)
                                 pcall(co,d7)
                             end
                         end)
-                        function d8:Remove()aZ:Destroy()end
+                        function d8:Remove()
+                            aZ:Destroy()
+                        end
                         return aZ,d8
                     end
                     
@@ -1654,7 +1643,7 @@ function bd:AddWindow(bi,bj)
                             db:Destroy()
                             if cW.currentSelection==da then
                                 local dc=cZ:GetChildren()[1]
-                                local dd=dc and dc.Text or"No Selection"
+                                local dd=dc and dc.Text or "No Selection"
                                 cW.currentSelection=dd
                                 cX.Text="        [ "..dd.." ]"
                                 pcall(co,dd)
@@ -1666,7 +1655,7 @@ function bd:AddWindow(bi,bj)
                 
                 function bU:AddColorPicker(co)
                     local de={}
-                    co=typeof(co)=="function"and co or function()end
+                    co=typeof(co)=="function" and co or function() end
                     local df=c:FindFirstChild("ColorPicker"):Clone()
                     local c1=c0:FindFirstChild("TabScroller")
                     df.Parent=c1 or c0
@@ -1688,10 +1677,10 @@ function bd:AddWindow(bi,bj)
                     dh.ImageColor3=dk
                     di.ImageColor3=Color3.fromHSV(aU,1,1)
                     local dl,dm=false,false
-                    dg.MouseEnter:Connect(function()e.Draggable=false dl=true end)
-                    dg.MouseLeave:Connect(function()e.Draggable=true dl=false end)
-                    di.MouseEnter:Connect(function()e.Draggable=false dm=true end)
-                    di.MouseLeave:Connect(function()e.Draggable=true dm=false end)
+                    dg.MouseEnter:Connect(function() e.Draggable=false dl=true end)
+                    dg.MouseLeave:Connect(function() e.Draggable=true dl=false end)
+                    di.MouseEnter:Connect(function() e.Draggable=false dm=true end)
+                    di.MouseLeave:Connect(function() e.Draggable=true dm=false end)
                     local dn=dg:FindFirstChild("Indicator")
                     local dp=di:FindFirstChild("Indicator")
                     dn.ZIndex=dn.ZIndex+bc*10
@@ -1703,7 +1692,7 @@ function bd:AddWindow(bi,bj)
                             bA=true
                             dq=an.Heartbeat:Connect(function()
                                 if not bA or bk then
-                                    if dq then dq:Disconnect()dq=nil end
+                                    if dq then dq:Disconnect() dq=nil end
                                     return
                                 end
                                 if dl then
@@ -1727,11 +1716,11 @@ function bd:AddWindow(bi,bj)
                     al.InputEnded:Connect(function(bC)
                         if bC.UserInputType==Enum.UserInputType.MouseButton1 then
                             bA=false
-                            if dq then dq:Disconnect()dq=nil end
+                            if dq then dq:Disconnect() dq=nil end
                         end
                     end)
                     function de:Set(dk)
-                        dk=typeof(dk)=="Color3"and dk or Color3.new(1,1,1)
+                        dk=typeof(dk)=="Color3" and dk or Color3.new(1,1,1)
                         local dr,ds,dt=aO(dk.r*255,dk.g*255,dk.b*255)
                         dh.ImageColor3=dk
                         di.ImageColor3=Color3.fromHSV(dr,1,1)
@@ -1756,7 +1745,7 @@ function bd:AddWindow(bi,bj)
                 
                 function bU:AddFolder(dx)
                     local dy={}
-                    dx=tostring(dx or"New Folder")
+                    dx=tostring(dx or "New Folder")
                     local dz=c:FindFirstChild("Folder"):Clone()
                     local b5=dz:FindFirstChild("Button")
                     local cZ=dz:FindFirstChild("Objects")
@@ -1773,8 +1762,10 @@ function bd:AddWindow(bi,bj)
                     cp.ImageColor3=bj.main_color
                     local function dB()
                         local d7=25
-                        for aw,aW in ipairs(cZ:GetChildren())do
-                            if not aW:IsA("UIListLayout")then d7=d7+aW.AbsoluteSize.Y+5 end
+                        for aw,aW in ipairs(cZ:GetChildren()) do
+                            if not aW:IsA("UIListLayout") then
+                                d7=d7+aW.AbsoluteSize.Y+5
+                            end
                         end
                         return d7
                     end
@@ -1785,22 +1776,22 @@ function bd:AddWindow(bi,bj)
                         if bF then
                             az(dA,{Rotation=90},bj.tween_time)
                             cZ.Visible=true
-                            if dC then dC:Disconnect()end
+                            if dC then dC:Disconnect() end
                             dC=an.Heartbeat:Connect(function()
                                 if bF then
                                     dz.Size=UDim2.new(1,0,0,dB())
                                 else
-                                    if dC then dC:Disconnect()dC=nil end
+                                    if dC then dC:Disconnect() dC=nil end
                                 end
                             end)
                         else
                             az(dA,{Rotation=0},bj.tween_time)
                             cZ.Visible=false
                             dz.Size=UDim2.new(1,0,0,20)
-                            if dC then dC:Disconnect()dC=nil end
+                            if dC then dC:Disconnect() dC=nil end
                         end
                     end)
-                    for bh,aW in pairs(bU)do
+                    for bh,aW in pairs(bU) do
                         dy[bh]=function(...)
                             local dw={aW(...)}
                             local aZ=dw[#dw]
@@ -1815,14 +1806,17 @@ function bd:AddWindow(bi,bj)
         end
     end
     
-    for aw,aW in ipairs(e:GetDescendants())do
-        if aY(aW,"ZIndex")then aW.ZIndex=aW.ZIndex+bc*10 end
+    for aw,aW in ipairs(e:GetDescendants()) do
+        if aY(aW,"ZIndex") then
+            aW.ZIndex=aW.ZIndex+bc*10
+        end
     end
+    
     return bx,e
 end
 
 script.AncestryChanged:Connect(function()
-    if not script.Parent then av()end
+    if not script.Parent then av() end
 end)
 
 return bd
