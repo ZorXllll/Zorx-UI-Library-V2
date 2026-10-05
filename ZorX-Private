@@ -8,6 +8,11 @@ local a = {
 local CoreGui = game:GetService("CoreGui")
 local LibraryName = "ZorX-UI-Library"
 
+local Existing = CoreGui:FindFirstChild(LibraryName)
+if Existing then
+    Existing:Destroy()
+end
+
 local b = Instance.new("ScreenGui")
 b.Name = LibraryName
 b.Parent = CoreGui
