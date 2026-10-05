@@ -5,6 +5,11 @@ local a = {
     can_resize = true
 }
 
+local Existing = CoreGui:FindFirstChild(LibraryName)
+if Existing then
+    Existing:Destroy()
+end
+
 local CoreGui = game:GetService("CoreGui")
 local LibraryName = "ZorX-UI-Library"
 
