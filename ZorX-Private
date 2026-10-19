@@ -1014,9 +1014,64 @@ function bd:AddWindow(bi, bj)
             local bp = 25
             local bq = 5
             l.Position = UDim2.new(0, bp, 0, bn)
-            l.Size = UDim2.new(1, -(bp + bq), 1, -bn * 2)
+            l.Size = UDim2.new(1, -(bp + bq + 20), 1, -bn * 2)
             l.TextXAlignment = Enum.TextXAlignment.Center
         end
+
+        -- ===== CLOSE (X) BUTTON — bigger, neutral gray =====
+        local closeBtn = Instance.new("TextButton")
+        closeBtn.Name = "CloseButton"
+        closeBtn.Parent = g
+        closeBtn.BackgroundColor3 = Color3.fromRGB(45, 50, 58)
+        closeBtn.BackgroundTransparency = 0.15
+        closeBtn.BorderSizePixel = 0
+        closeBtn.Size = UDim2.new(0, 20, 0, 20)
+        closeBtn.Position = UDim2.new(1, -25, 0.5, -10)
+        closeBtn.ZIndex = g.ZIndex + 5
+        closeBtn.Font = Enum.Font.FredokaOne
+        closeBtn.Text = "X"
+        closeBtn.TextColor3 = Color3.fromRGB(220, 220, 220)
+        closeBtn.TextSize = 14
+        closeBtn.AutoButtonColor = false
+
+        local closeCorner = Instance.new("UICorner")
+        closeCorner.CornerRadius = UDim.new(0, 5)
+        closeCorner.Parent = closeBtn
+
+        local closeStroke = Instance.new("UIStroke")
+        closeStroke.Color = Color3.fromRGB(0, 0, 0)
+        closeStroke.Thickness = 1
+        closeStroke.Transparency = 0.6
+        closeStroke.Parent = closeBtn
+
+        closeBtn.MouseEnter:Connect(function()
+            az(closeBtn, { BackgroundTransparency = 0, BackgroundColor3 = Color3.fromRGB(65, 72, 82) }, 0.15)
+            az(closeBtn, { TextColor3 = Color3.fromRGB(255, 255, 255) }, 0.15)
+        end)
+        closeBtn.MouseLeave:Connect(function()
+            az(closeBtn, { BackgroundTransparency = 0.15, BackgroundColor3 = Color3.fromRGB(45, 50, 58) }, 0.15)
+            az(closeBtn, { TextColor3 = Color3.fromRGB(220, 220, 220) }, 0.15)
+        end)
+        closeBtn.MouseButton1Click:Connect(function()
+            if e and e.Parent then
+                e:Destroy()
+            end
+            task.defer(function()
+                local remaining = 0
+                for _, child in ipairs(ak:GetChildren()) do
+                    if child:IsA("ImageLabel") and child.Name == "Window" then
+                        remaining = remaining + 1
+                    end
+                end
+                if remaining == 0 and b then
+                    b:Destroy()
+                else
+                    if bd and bd.FormatWindows then bd:FormatWindows() end
+                end
+            end)
+        end)
+        -- ===== END CLOSE BUTTON =====
+
         g.BackgroundTransparency = bj.title_bar_transparency
         aH(g, bj.title_bar, 0)
 
@@ -1405,8 +1460,7 @@ function bd:AddWindow(bi, bj)
                     cy.FocusLost:Connect(function(cA)
                         if cA and #cy.Text > 0 then
                             pcall(co, cy.Text)
-                            if cx.clear then cy.Text = "" end
-                        end
+                            if cx.clear then cy.Text = "" end                        end
                     end)
                     return cy
                 end
