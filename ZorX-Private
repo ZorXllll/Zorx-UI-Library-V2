@@ -1018,12 +1018,11 @@ function bd:AddWindow(bi, bj)
             l.TextXAlignment = Enum.TextXAlignment.Center
         end
 
-        -- ===== CLOSE (X) BUTTON — bigger, neutral gray =====
+        -- ===== CLOSE (X) BUTTON — transparent, no color =====
         local closeBtn = Instance.new("TextButton")
         closeBtn.Name = "CloseButton"
         closeBtn.Parent = g
-        closeBtn.BackgroundColor3 = Color3.fromRGB(45, 50, 58)
-        closeBtn.BackgroundTransparency = 0.15
+        closeBtn.BackgroundTransparency = 1
         closeBtn.BorderSizePixel = 0
         closeBtn.Size = UDim2.new(0, 20, 0, 20)
         closeBtn.Position = UDim2.new(1, -25, 0.5, -10)
@@ -1034,22 +1033,10 @@ function bd:AddWindow(bi, bj)
         closeBtn.TextSize = 14
         closeBtn.AutoButtonColor = false
 
-        local closeCorner = Instance.new("UICorner")
-        closeCorner.CornerRadius = UDim.new(0, 5)
-        closeCorner.Parent = closeBtn
-
-        local closeStroke = Instance.new("UIStroke")
-        closeStroke.Color = Color3.fromRGB(0, 0, 0)
-        closeStroke.Thickness = 1
-        closeStroke.Transparency = 0.6
-        closeStroke.Parent = closeBtn
-
         closeBtn.MouseEnter:Connect(function()
-            az(closeBtn, { BackgroundTransparency = 0, BackgroundColor3 = Color3.fromRGB(65, 72, 82) }, 0.15)
             az(closeBtn, { TextColor3 = Color3.fromRGB(255, 255, 255) }, 0.15)
         end)
         closeBtn.MouseLeave:Connect(function()
-            az(closeBtn, { BackgroundTransparency = 0.15, BackgroundColor3 = Color3.fromRGB(45, 50, 58) }, 0.15)
             az(closeBtn, { TextColor3 = Color3.fromRGB(220, 220, 220) }, 0.15)
         end)
         closeBtn.MouseButton1Click:Connect(function()
@@ -1117,7 +1104,6 @@ function bd:AddWindow(bi, bj)
     local bx = {}
     e.Draggable = true
 
-    -- Resize handling
     do
         local by = aq.Icon
         local bz = false
