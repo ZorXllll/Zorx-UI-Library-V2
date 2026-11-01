@@ -715,6 +715,7 @@ ab.Size = UDim2.new(1, 0, 1, 0)
 ab.Image = "rbxassetid://2851929490"
 ab.ImageColor3 = Color3.new(0.160784, 0.290196, 0.478431)
 ab.ImageTransparency = 0.5
+ab.ImageTransparency = 0.5
 ab.ScaleType = Enum.ScaleType.Slice
 ab.SliceCenter = Rect.new(4, 4, 4, 4)
 
@@ -1013,7 +1014,6 @@ function bd:AddWindow(bi, bj)
             l.TextXAlignment = Enum.TextXAlignment.Center
         end
 
-        -- ===== CLOSE (X) BUTTON — transparent, no color =====
         local closeBtn = Instance.new("TextButton")
         closeBtn.Name = "CloseButton"
         closeBtn.Parent = g
@@ -1052,7 +1052,6 @@ function bd:AddWindow(bi, bj)
                 end
             end)
         end)
-        -- ===== END CLOSE BUTTON =====
 
         g.BackgroundTransparency = bj.title_bar_transparency
         aH(g, bj.title_bar, 0)
@@ -1441,11 +1440,13 @@ function bd:AddWindow(bi, bj)
                     cy.FocusLost:Connect(function(cA)
                         if cA and #cy.Text > 0 then
                             pcall(co, cy.Text)
-                            if cx.clear then cy.Text = "" end                        end
+                            if cx.clear then cy.Text = "" end
+                        end
                     end)
                     return cy
                 end
 
+                -- ============ FIXED AddSlider ============
                 function bU:AddSlider(cB, co, cC)
                     local cD = {}
                     cB = tostring(cB or "New Slider")
@@ -1467,9 +1468,10 @@ function bd:AddWindow(bi, bj)
                     bi.Text = cB
 
                     local isDragging = false
+                    local currentValue = cC.min
 
                     local function updateSlider(input)
-                        if bk or not isDragging or cC.readonly then return end
+                        if bk or cC.readonly then return end
                         local mousePos
                         if input and input.Position then
                             mousePos = input.Position
@@ -1478,14 +1480,14 @@ function bd:AddWindow(bi, bj)
                         end
                         local sliderPos = cE.AbsolutePosition
                         local sliderSize = cE.AbsoluteSize
-                        if mousePos.X < sliderPos.X or mousePos.X > sliderPos.X + sliderSize.X then
-                            return
-                        end
+                        if sliderSize.X <= 0 then return end
                         local b6 = math.clamp((mousePos.X - sliderPos.X) / sliderSize.X, 0, 1)
                         cF.Size = UDim2.new(b6, 0, 0, 20)
                         local percentage = math.floor(b6 * 100)
                         local range = cC.max - cC.min
                         local value = math.floor(range / 100 * percentage + cC.min)
+                        if b6 >= 0.999 then value = cC.max end
+                        currentValue = value
                         cG.Text = tostring(value)
                         pcall(co, value)
                     end
@@ -1507,9 +1509,16 @@ function bd:AddWindow(bi, bj)
                         end
                     end)
 
-                    cE.InputChanged:Connect(function(input)
-                        if (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) and isDragging then
-                            updateSlider(input)
+                    local dragConn
+                    cE.InputBegan:Connect(function(input)
+                        if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and not cC.readonly then
+                            if dragConn then dragConn:Disconnect() end
+                            dragConn = al.InputChanged:Connect(function(inp)
+                                if not isDragging then return end
+                                if inp.UserInputType == Enum.UserInputType.MouseMovement or inp.UserInputType == Enum.UserInputType.Touch then
+                                    updateSlider(inp)
+                                end
+                            end)
                         end
                     end)
 
@@ -1518,25 +1527,24 @@ function bd:AddWindow(bi, bj)
                             if isDragging then
                                 isDragging = false
                                 e.Draggable = true
+                                if dragConn then dragConn:Disconnect() dragConn = nil end
                             end
                         end
                     end)
 
                     function cD:Set(cM)
                         cM = tonumber(cM) or 0
-                        cM = math.clamp(cM, 0, 100) / 100
-                        cF.Size = UDim2.new(cM, 0, 0, 20)
-                        local ap = math.floor(cM * 100)
-                        local cI = cC.max
-                        local cJ = cC.min
-                        local cK = cI - cJ
-                        local cL = math.floor(cK / 100 * ap + cJ)
-                        cG.Text = tostring(cL)
-                        pcall(co, cL)
+                        cM = math.clamp(cM, cC.min, cC.max)
+                        local pct = (cM - cC.min) / (cC.max - cC.min)
+                        cF.Size = UDim2.new(pct, 0, 0, 20)
+                        currentValue = math.floor(cM)
+                        cG.Text = tostring(currentValue)
+                        pcall(co, currentValue)
                     end
                     cD:Set(cC.min)
                     return cD, cE
                 end
+                -- ============ END FIXED AddSlider ============
 
                 function bU:AddKeybind(cN, co, cO)
                     local cP = {}
