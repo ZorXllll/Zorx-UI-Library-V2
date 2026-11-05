@@ -966,12 +966,152 @@ function bd:FormatWindows()
     be()
 end
 
--- ===== RUNTIME HELPERS (live-button only, no global config) =====
+-- ===== FLOATING BUTTON API (opt-in — call AddFloatingButton to create) =====
+function bd:AddFloatingButton(cfg)
+    cfg = typeof(cfg) == "table" and cfg or {}
+    cfg.color      = typeof(cfg.color) == "Color3" and cfg.color or Color3.fromRGB(255, 105, 180)
+    cfg.hover      = typeof(cfg.hover) == "Color3" and cfg.hover or Color3.fromRGB(
+        math.min(255, math.floor(cfg.color.R * 255) + 35),
+        math.min(255, math.floor(cfg.color.G * 255) + 35),
+        math.min(255, math.floor(cfg.color.B * 255) + 35)
+    )
+    cfg.icon       = cfg.icon or "https://www.roblox.com/Thumbs/Asset.ashx?width=420&height=420&assetId=131276898160614"
+    cfg.icon_color = typeof(cfg.icon_color) == "Color3" and cfg.icon_color or Color3.fromRGB(255, 255, 255)
+    cfg.size       = cfg.size or 42
+    cfg.corner     = cfg.corner or 6
+    cfg.position   = cfg.position or UDim2.new(0, 20, 0, 80)
+    cfg.draggable  = cfg.draggable ~= false
+
+    local existing = b:FindFirstChild("FloatingToggle")
+    if existing then
+        existing.BackgroundColor3 = cfg.color
+        existing.Image = cfg.icon
+        existing.ImageColor3 = cfg.icon_color
+        existing.Size = UDim2.new(0, cfg.size, 0, cfg.size)
+        existing.Position = cfg.position
+        existing:SetAttribute("BaseColor", cfg.color)
+        existing:SetAttribute("HoverColor", cfg.hover)
+        local uc = existing:FindFirstChildOfClass("UICorner")
+        if uc then uc.CornerRadius = UDim.new(0, cfg.corner) end
+        return existing
+    end
+
+    local floatBtn = Instance.new("ImageButton")
+    floatBtn.Name = "FloatingToggle"
+    floatBtn.Parent = b
+    floatBtn.Size = UDim2.new(0, cfg.size, 0, cfg.size)
+    floatBtn.Position = cfg.position
+    floatBtn.BackgroundColor3 = cfg.color
+    floatBtn.BorderSizePixel = 0
+    floatBtn.Image = cfg.icon
+    floatBtn.ImageColor3 = cfg.icon_color
+    floatBtn.ScaleType = Enum.ScaleType.Fit
+    floatBtn.ZIndex = 100000
+    floatBtn.AutoButtonColor = false
+    floatBtn.Visible = true
+    floatBtn:SetAttribute("BaseColor", cfg.color)
+    floatBtn:SetAttribute("HoverColor", cfg.hover)
+
+    local fc = Instance.new("UICorner")
+    fc.CornerRadius = UDim.new(0, cfg.corner)
+    fc.Parent = floatBtn
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.new(0, 0, 0)
+    stroke.Thickness = 1.5
+    stroke.Transparency = 0.5
+    stroke.Parent = floatBtn
+
+    floatBtn.MouseEnter:Connect(function()
+        local hc = floatBtn:GetAttribute("HoverColor")
+        if hc then az(floatBtn, { BackgroundColor3 = hc }, 0.15) end
+    end)
+    floatBtn.MouseLeave:Connect(function()
+        local base = floatBtn:GetAttribute("BaseColor")
+        if base then az(floatBtn, { BackgroundColor3 = base }, 0.15) end
+    end)
+
+    local dragging = false
+    local dragInput, dragStart, startPos
+    local wasDragged = false
+    local dragThreshold = 6
+    local clickStart
+
+    if cfg.draggable then
+        floatBtn.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1
+                or input.UserInputType == Enum.UserInputType.Touch then
+                dragging = true
+                dragStart = input.Position
+                startPos = floatBtn.Position
+
+                input.Changed:Connect(function()
+                    if input.UserInputState == Enum.UserInputState.End then
+                        dragging = false
+                    end
+                end)
+            end
+        end)
+
+        floatBtn.InputChanged:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseMovement
+                or input.UserInputType == Enum.UserInputType.Touch then
+                dragInput = input
+            end
+        end)
+
+        al.InputChanged:Connect(function(input)
+            if input == dragInput and dragging then
+                local delta = input.Position - dragStart
+                floatBtn.Position = UDim2.new(
+                    startPos.X.Scale,
+                    startPos.X.Offset + delta.X,
+                    startPos.Y.Scale,
+                    startPos.Y.Offset + delta.Y
+                )
+            end
+        end)
+
+        floatBtn.MouseButton1Down:Connect(function()
+            clickStart = b3()
+            wasDragged = false
+        end)
+
+        al.InputChanged:Connect(function(input)
+            if dragging and clickStart then
+                local cur = b3()
+                if (cur - clickStart).Magnitude > dragThreshold then
+                    wasDragged = true
+                end
+            end
+        end)
+    end
+
+    floatBtn.MouseButton1Click:Connect(function()
+        if wasDragged then
+            wasDragged = false
+            return
+        end
+        local windowsFrame = b:FindFirstChild("Windows")
+        if windowsFrame then
+            windowsFrame.Visible = not windowsFrame.Visible
+        end
+    end)
+
+    return floatBtn
+end
+
+function bd:RemoveFloatingButton()
+    local fb = b and b:FindFirstChild("FloatingToggle")
+    if fb then fb:Destroy() end
+end
+
 function bd:SetFloatingColor(color, hoverColor)
     local fb = b and b:FindFirstChild("FloatingToggle")
     if not fb then return end
     color = typeof(color) == "Color3" and color or fb.BackgroundColor3
     fb.BackgroundColor3 = color
+    fb:SetAttribute("BaseColor", color)
     fb:SetAttribute("HoverColor", typeof(hoverColor) == "Color3" and hoverColor
         or Color3.fromRGB(
             math.min(255, math.floor(color.R * 255) + 35),
@@ -1013,23 +1153,6 @@ function bd:AddWindow(bi, bj)
     if typeof(bj.background) == "Color3" then bj.background = { bj.background } end
     bj.background_transparency = bj.background_transparency or 0.1
     if not bj.main_color then bj.main_color = bj.title_bar[1] end
-
-    -- ===== FLOATING BUTTON CONFIG (from AddWindow only) =====
-    bj.floating_button = typeof(bj.floating_button) == "table" and bj.floating_button or {}
-    local fbCfg = bj.floating_button
-    fbCfg.enabled    = fbCfg.enabled ~= false
-    fbCfg.color      = typeof(fbCfg.color) == "Color3" and fbCfg.color or Color3.fromRGB(255, 105, 180)
-    fbCfg.hover      = typeof(fbCfg.hover) == "Color3" and fbCfg.hover or Color3.fromRGB(
-        math.min(255, math.floor(fbCfg.color.R * 255) + 35),
-        math.min(255, math.floor(fbCfg.color.G * 255) + 35),
-        math.min(255, math.floor(fbCfg.color.B * 255) + 35)
-    )
-    fbCfg.icon       = fbCfg.icon or "https://www.roblox.com/Thumbs/Asset.ashx?width=420&height=420&assetId=131276898160614"
-    fbCfg.icon_color = typeof(fbCfg.icon_color) == "Color3" and fbCfg.icon_color or Color3.fromRGB(255, 255, 255)
-    fbCfg.size       = fbCfg.size or 42
-    fbCfg.corner     = fbCfg.corner or 6
-    fbCfg.position   = fbCfg.position or UDim2.new(0, 20, 0, 80)
-    fbCfg.draggable  = fbCfg.draggable ~= false
 
     local e = c:FindFirstChild("Window"):Clone()
     e.Parent = ak
@@ -1948,112 +2071,6 @@ function bd:AddWindow(bi, bj)
             aW.ZIndex = aW.ZIndex + bc * 10
         end
     end
-
-    -- ============ FLOATING TOGGLE BUTTON (CONFIG-DRIVEN FROM AddWindow) ============
-    if fbCfg.enabled and not b:FindFirstChild("FloatingToggle") then
-        local floatBtn = Instance.new("ImageButton")
-        floatBtn.Name = "FloatingToggle"
-        floatBtn.Parent = b
-        floatBtn.Size = UDim2.new(0, fbCfg.size, 0, fbCfg.size)
-        floatBtn.Position = fbCfg.position
-        floatBtn.BackgroundColor3 = fbCfg.color
-        floatBtn.BorderSizePixel = 0
-        floatBtn.Image = fbCfg.icon
-        floatBtn.ImageColor3 = fbCfg.icon_color
-        floatBtn.ScaleType = Enum.ScaleType.Fit
-        floatBtn.ZIndex = 100000
-        floatBtn.AutoButtonColor = false
-        floatBtn.Visible = true
-        floatBtn:SetAttribute("BaseColor", fbCfg.color)
-        floatBtn:SetAttribute("HoverColor", fbCfg.hover)
-
-        local fc = Instance.new("UICorner")
-        fc.CornerRadius = UDim.new(0, fbCfg.corner)
-        fc.Parent = floatBtn
-
-        local stroke = Instance.new("UIStroke")
-        stroke.Color = Color3.new(0, 0, 0)
-        stroke.Thickness = 1.5
-        stroke.Transparency = 0.5
-        stroke.Parent = floatBtn
-
-        floatBtn.MouseEnter:Connect(function()
-            local hc = floatBtn:GetAttribute("HoverColor")
-            if hc then az(floatBtn, { BackgroundColor3 = hc }, 0.15) end
-        end)
-        floatBtn.MouseLeave:Connect(function()
-            local base = floatBtn:GetAttribute("BaseColor")
-            if base then az(floatBtn, { BackgroundColor3 = base }, 0.15) end
-        end)
-
-        local dragging = false
-        local dragInput, dragStart, startPos
-        local wasDragged = false
-        local dragThreshold = 6
-        local clickStart
-
-        if fbCfg.draggable then
-            floatBtn.InputBegan:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1
-                    or input.UserInputType == Enum.UserInputType.Touch then
-                    dragging = true
-                    dragStart = input.Position
-                    startPos = floatBtn.Position
-
-                    input.Changed:Connect(function()
-                        if input.UserInputState == Enum.UserInputState.End then
-                            dragging = false
-                        end
-                    end)
-                end
-            end)
-
-            floatBtn.InputChanged:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseMovement
-                    or input.UserInputType == Enum.UserInputType.Touch then
-                    dragInput = input
-                end
-            end)
-
-            al.InputChanged:Connect(function(input)
-                if input == dragInput and dragging then
-                    local delta = input.Position - dragStart
-                    floatBtn.Position = UDim2.new(
-                        startPos.X.Scale,
-                        startPos.X.Offset + delta.X,
-                        startPos.Y.Scale,
-                        startPos.Y.Offset + delta.Y
-                    )
-                end
-            end)
-
-            floatBtn.MouseButton1Down:Connect(function()
-                clickStart = b3()
-                wasDragged = false
-            end)
-
-            al.InputChanged:Connect(function(input)
-                if dragging and clickStart then
-                    local cur = b3()
-                    if (cur - clickStart).Magnitude > dragThreshold then
-                        wasDragged = true
-                    end
-                end
-            end)
-        end
-
-        floatBtn.MouseButton1Click:Connect(function()
-            if wasDragged then
-                wasDragged = false
-                return
-            end
-            local windowsFrame = b:FindFirstChild("Windows")
-            if windowsFrame then
-                windowsFrame.Visible = not windowsFrame.Visible
-            end
-        end)
-    end
-    -- ============ END FLOATING TOGGLE BUTTON ============
 
     return bx, e
 end
